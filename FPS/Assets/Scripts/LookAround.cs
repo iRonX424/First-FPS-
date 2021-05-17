@@ -6,6 +6,7 @@ public class LookAround : MonoBehaviour
 {
     [SerializeField] Transform player;
     [SerializeField] Transform cam;
+    [SerializeField] Transform weapon;
 
     [SerializeField] float xSensitivity;
     [SerializeField] float ySensitivity;
@@ -36,6 +37,7 @@ public class LookAround : MonoBehaviour
         {
             cam.localRotation = delta;
         }
+        weapon.rotation = cam.rotation;
     }
 
     void SetX()
