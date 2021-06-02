@@ -3714,6 +3714,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   playerCamera: {fileID: 148401022}
+  weaponParent: {fileID: 1707279405}
 --- !u!54 &1067708517
 Rigidbody:
   m_ObjectHideFlags: 0

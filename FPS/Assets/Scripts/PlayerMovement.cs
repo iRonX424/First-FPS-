@@ -18,20 +18,74 @@ public class PlayerMovement : MonoBehaviour
     private float baseFOV;
     private float sprintFOVModifier = 2f;
 
+    [Header("Weapon Headbob")]
+    [SerializeField] Transform weaponParent;
+    private Vector3 weaponParentOrigin;
+    private float idleCounter;
+    private float movementCounter;
+    private Vector3 targetWeaponHeadbobPosition;
+
     private Rigidbody rig;
     
     void Start()
     {
         baseFOV = playerCamera.fieldOfView;
         Camera.main.enabled = false;
-        rig = GetComponent<Rigidbody>();    
+        rig = GetComponent<Rigidbody>();
+        weaponParentOrigin = weaponParent.localPosition;
     }
 
+    private void Update()
+    {
+        //movement along axes
+        float xPos = Input.GetAxisRaw("Horizontal");
+        float yPos = Input.GetAxisRaw("Vertical");
+
+
+
+        //sprinting 
+        bool sprint = Input.GetKey(KeyCode.LeftShift);
+        bool jump = Input.GetKey(KeyCode.Space);
+
+        bool isGrounded = Physics.Raycast(groundDetector.position, Vector3.down, 0.1f, ground);
+        bool isJumping = jump && isGrounded;
+        bool isSprinting = sprint && yPos > 0 && !isJumping && isGrounded;  //to avoid sprinting backwards
+
+        //weapon headbob
+        if (xPos == 0 && yPos == 0)  //idle
+        {
+            Headbob(idleCounter, 0.025f, 0.025f);
+            idleCounter += Time.deltaTime;
+            weaponParent.localPosition = Vector3.Lerp(weaponParent.localPosition,
+                                                    targetWeaponHeadbobPosition,
+                                                    Time.deltaTime * 2f);
+        }
+        else if (!isSprinting)  //normal running
+        {
+            Headbob(movementCounter, 0.035f, 0.035f);
+            movementCounter += Time.deltaTime * 3f;
+            weaponParent.localPosition = Vector3.Lerp(weaponParent.localPosition,
+                                                    targetWeaponHeadbobPosition,
+                                                    Time.deltaTime * 6f);
+        }
+        else  //sprinting
+        {
+            Headbob(movementCounter, 0.15f, 0.075f);
+            movementCounter += Time.deltaTime * 7f;
+            weaponParent.localPosition = Vector3.Lerp(weaponParent.localPosition,
+                                                    targetWeaponHeadbobPosition,
+                                                    Time.deltaTime * 10f);
+        }
+    }
+
+    //if movement isnt proper move few statements to update()
     void FixedUpdate()
     {
         //movement along axes
         float xPos = Input.GetAxisRaw("Horizontal");
         float yPos = Input.GetAxisRaw("Vertical");
+
+        
 
         //sprinting 
         bool sprint = Input.GetKey(KeyCode.LeftShift);
@@ -45,6 +99,8 @@ public class PlayerMovement : MonoBehaviour
         {
             rig.AddForce(Vector3.up * jumpForce);
         }
+
+        
 
         //speed modifier for while sprinting
         float modifiedSpeed = normalSpeed;
@@ -67,5 +123,12 @@ public class PlayerMovement : MonoBehaviour
         {
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, baseFOV,Time.deltaTime* 10f);
         }
+    }
+
+    void Headbob(float x,float x_intensity,float y_intensity)
+    {
+        targetWeaponHeadbobPosition = weaponParentOrigin + new Vector3(Mathf.Cos(x) * x_intensity,
+                                                 Mathf.Sin(x*2) * y_intensity,
+                                                 0f);
     }
 }
