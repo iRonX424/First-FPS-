@@ -9,6 +9,9 @@ public class Weapon : MonoBehaviour
 
     private GameObject currentWeapon;
     private int currentIndex;
+
+    [SerializeField] GameObject bulletHolePrefab;
+    [SerializeField] LayerMask canBeShot;
     
     void Start()
     {
@@ -22,6 +25,9 @@ public class Weapon : MonoBehaviour
         if (currentWeapon != null)
         {
             Aim(Input.GetMouseButton(1));
+
+            if (Input.GetMouseButton(0))
+                Shoot();
         }
     }
 
@@ -55,5 +61,21 @@ public class Weapon : MonoBehaviour
         {
             tempAnchor.position = Vector3.Lerp(tempAnchor.position, temp_hip.position, Time.deltaTime * loadouts[currentIndex].aimSpeed);
         }
+    }
+
+    void Shoot()
+    {
+        Transform rayOrigin = transform.Find("Cameras/Player Camera");
+
+        RaycastHit hitInfo = new RaycastHit();
+        if(Physics.Raycast(rayOrigin.position,rayOrigin.forward,out hitInfo,10000f,canBeShot))
+        {
+            GameObject newHole = Instantiate(bulletHolePrefab,
+                                                hitInfo.point+hitInfo.normal*0.001f,
+                                                Quaternion.identity) as GameObject;
+            newHole.transform.LookAt(hitInfo.point+hitInfo.normal);
+            Destroy(newHole,5f);
+        }
+
     }
 }
