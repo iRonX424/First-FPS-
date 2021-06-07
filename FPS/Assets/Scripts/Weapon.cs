@@ -9,6 +9,7 @@ public class Weapon : MonoBehaviour
 
     private GameObject currentWeapon;
     private int currentIndex;
+    private float cooldown;
 
     [SerializeField] GameObject bulletHolePrefab;
     [SerializeField] LayerMask canBeShot;
@@ -26,8 +27,16 @@ public class Weapon : MonoBehaviour
         {
             Aim(Input.GetMouseButton(1));
 
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButtonDown(0) && cooldown<=0)
                 Shoot();
+
+            //weapon position elasticity
+            currentWeapon.transform.localPosition = Vector3.Lerp(currentWeapon.transform.localPosition,
+                                                                    Vector3.zero,
+                                                                    Time.deltaTime*4f);
+
+            //ending cooldown while not shooting
+            cooldown -= Time.deltaTime;
         }
     }
 
@@ -67,8 +76,16 @@ public class Weapon : MonoBehaviour
     {
         Transform rayOrigin = transform.Find("Cameras/Player Camera");
 
+        //bloom
+        Vector3 bloom = rayOrigin.position + rayOrigin.forward * 1000f;
+        bloom += Random.Range(-loadouts[currentIndex].bloom,loadouts[currentIndex].bloom)*rayOrigin.up;
+        bloom += Random.Range(-loadouts[currentIndex].bloom, loadouts[currentIndex].bloom) * rayOrigin.right;
+        bloom -= rayOrigin.position;
+        bloom.Normalize();
+
+        //raycast
         RaycastHit hitInfo = new RaycastHit();
-        if(Physics.Raycast(rayOrigin.position,rayOrigin.forward,out hitInfo,10000f,canBeShot))
+        if(Physics.Raycast(rayOrigin.position,bloom,out hitInfo,10000f,canBeShot))
         {
             GameObject newHole = Instantiate(bulletHolePrefab,
                                                 hitInfo.point+hitInfo.normal*0.001f,
@@ -77,5 +94,11 @@ public class Weapon : MonoBehaviour
             Destroy(newHole,5f);
         }
 
+        //gun fx
+        currentWeapon.transform.Rotate(-loadouts[currentIndex].recoil,0,0);
+        currentWeapon.transform.position -= currentWeapon.transform.forward * loadouts[currentIndex].kickback;
+
+        //firing cooldown
+        cooldown = loadouts[currentIndex].firerate;
     }
 }
