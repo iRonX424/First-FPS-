@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class WeaponSway : MonoBehaviourPunCallbacks
+public class WeaponSway : MonoBehaviour
 {
     [SerializeField] float intensity; //value of 1 for best experience ... i think
     [SerializeField] float smooth;
@@ -18,8 +18,6 @@ public class WeaponSway : MonoBehaviourPunCallbacks
    
     private void Update()
     {
-        if (!photonView.IsMine) return;
-
         UpdateSway();
     }
 
