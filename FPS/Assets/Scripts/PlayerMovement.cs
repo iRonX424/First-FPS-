@@ -8,6 +8,8 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
     [Header("Movement")]
     [SerializeField] float normalSpeed=500f;
     [SerializeField] float sprintSpeed=2f;
+    [SerializeField] int maxHealth;
+    private int currentHealth;
 
     [Header("Jumping")]
     [SerializeField] float jumpForce = 500f;
@@ -28,6 +30,7 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
     private Vector3 targetWeaponHeadbobPosition;
 
     private Rigidbody rig;
+    private Manager manager;
     
     void Start()
     {
@@ -46,6 +49,8 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
         baseFOV = playerCamera.fieldOfView;
         rig = GetComponent<Rigidbody>();
         weaponParentOrigin = weaponParent.localPosition;
+        currentHealth = maxHealth;
+        manager = GameObject.Find("Manager").GetComponent<Manager>();
     }
 
     private void Update()
@@ -56,11 +61,12 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
         float xPos = Input.GetAxisRaw("Horizontal");
         float yPos = Input.GetAxisRaw("Vertical");
 
-
+        if (Input.GetKeyDown(KeyCode.R))
+            TakeDamage(500);
 
         //sprinting 
         bool sprint = Input.GetKey(KeyCode.LeftShift);
-        bool jump = Input.GetKey(KeyCode.Space);
+        bool jump = Input.GetKeyDown(KeyCode.Space);
 
         bool isGrounded = Physics.Raycast(groundDetector.position, Vector3.down, 0.1f, ground);
         bool isJumping = jump && isGrounded;
@@ -131,7 +137,8 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
             modifiedSpeed *= sprintSpeed;
         }
 
-        Vector3 movementDirection = new Vector3(xPos, 0f, yPos).normalized;
+        Vector3 movementDirection = new Vector3(xPos, 0f, yPos);
+        movementDirection.Normalize();
         Vector3 targetVelocity = transform.TransformDirection(movementDirection) * modifiedSpeed * Time.deltaTime;
         targetVelocity.y = rig.velocity.y;
         rig.velocity = targetVelocity;
@@ -152,5 +159,21 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
         targetWeaponHeadbobPosition = weaponParentOrigin + new Vector3(Mathf.Cos(x) * x_intensity,
                                                  Mathf.Sin(x*2) * y_intensity,
                                                  0f);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        if (photonView.IsMine)
+        {
+            currentHealth -= damage;
+            Debug.Log(currentHealth);
+
+            if (currentHealth <= 0)
+            {
+                Debug.Log("Omae wa mou shindeiru");
+                manager.Spawn();
+                PhotonNetwork.Destroy(gameObject);
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ public class WeaponSway : MonoBehaviourPunCallbacks
 {
     [SerializeField] float intensity; //value of 1 for best experience ... i think
     [SerializeField] float smooth;
+    public bool isMine;
 
     private Quaternion origin_rotation;
     void Start()
@@ -27,6 +28,12 @@ public class WeaponSway : MonoBehaviourPunCallbacks
         //controls
         float xMouse = Input.GetAxis("Mouse X");
         float yMouse = Input.GetAxis("Mouse Y");
+
+        if(!isMine)
+        {
+            xMouse = 0;
+            yMouse = 0;
+        }
 
         //target rotation
         Quaternion x_adj = Quaternion.AngleAxis(-xMouse * intensity, Vector3.up);

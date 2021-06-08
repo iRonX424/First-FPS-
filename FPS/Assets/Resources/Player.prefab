@@ -305,6 +305,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   normalSpeed: 500
   sprintSpeed: 2
+  maxHealth: 200
   jumpForce: 1000
   groundDetector: {fileID: 7830135766755861558}
   ground:

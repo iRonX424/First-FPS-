@@ -59,7 +59,7 @@ public class Weapon : MonoBehaviourPunCallbacks
                                                 weaponParent) as GameObject;
         weaponEquipped.transform.localPosition = Vector3.zero;
         weaponEquipped.transform.localEulerAngles = Vector3.zero;
-        weaponEquipped.GetComponent<WeaponSway>().enabled = photonView.IsMine;
+        weaponEquipped.GetComponent<WeaponSway>().isMine = photonView.IsMine;
 
         currentWeapon = weaponEquipped;
     }
@@ -101,6 +101,15 @@ public class Weapon : MonoBehaviourPunCallbacks
                                                 Quaternion.identity) as GameObject;
             newHole.transform.LookAt(hitInfo.point+hitInfo.normal);
             Destroy(newHole,5f);
+
+            if(photonView.IsMine)
+            {
+                if(hitInfo.collider.gameObject.layer==11)
+                {
+                    hitInfo.collider.gameObject.GetPhotonView().RPC("TakeDamage",RpcTarget.All, loadouts[currentIndex].damage);
+                }
+            }
+
         }
 
         //gun fx
@@ -109,5 +118,11 @@ public class Weapon : MonoBehaviourPunCallbacks
 
         //firing cooldown
         cooldown = loadouts[currentIndex].firerate;
+    }
+
+    [PunRPC] 
+    private void TakeDamage(int damage)
+    {
+        GetComponent<PlayerMovement>().TakeDamage(damage);
     }
 }

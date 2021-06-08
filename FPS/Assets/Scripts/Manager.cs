@@ -6,15 +6,16 @@ using Photon.Pun;
 public class Manager : MonoBehaviour
 {
     public string player;
-    public Transform playerSpawnPosition;
+    public Transform[] playerSpawnPosition;
 
     private void Start()
     {
         Spawn();
     }
 
-    void Spawn()
+    public void Spawn()
     {
-        PhotonNetwork.Instantiate(player,playerSpawnPosition.position,playerSpawnPosition.rotation);
+        Transform spawnPoint = playerSpawnPosition[Random.Range(0,playerSpawnPosition.Length)];
+        PhotonNetwork.Instantiate(player,spawnPoint.position,spawnPoint.rotation);
     }
 }
