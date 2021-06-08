@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : MonoBehaviourPunCallbacks
 {
     [Header("Movement")]
     [SerializeField] float normalSpeed=500f;
@@ -15,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header ("FOV")]
     [SerializeField] Camera playerCamera;
+    [SerializeField] GameObject CameraParent;
     private float baseFOV;
     private float sprintFOVModifier = 2f;
 
@@ -29,14 +31,27 @@ public class PlayerMovement : MonoBehaviour
     
     void Start()
     {
+        if(photonView.IsMine)
+        {
+            CameraParent.SetActive(true);
+        }
+
+        //making it so other players are shot
+        if(!photonView.IsMine)
+        {
+            gameObject.layer=11;
+        }
+
+        if(Camera.main) Camera.main.enabled = false;
         baseFOV = playerCamera.fieldOfView;
-        Camera.main.enabled = false;
         rig = GetComponent<Rigidbody>();
         weaponParentOrigin = weaponParent.localPosition;
     }
 
     private void Update()
     {
+        if (!photonView.IsMine) return;
+
         //movement along axes
         float xPos = Input.GetAxisRaw("Horizontal");
         float yPos = Input.GetAxisRaw("Vertical");
@@ -50,6 +65,11 @@ public class PlayerMovement : MonoBehaviour
         bool isGrounded = Physics.Raycast(groundDetector.position, Vector3.down, 0.1f, ground);
         bool isJumping = jump && isGrounded;
         bool isSprinting = sprint && yPos > 0 && !isJumping && isGrounded;  //to avoid sprinting backwards
+
+        if (isJumping)
+        {
+            rig.AddForce(Vector3.up * jumpForce);
+        }
 
         //weapon headbob
         if (xPos == 0 && yPos == 0)  //idle
@@ -81,6 +101,8 @@ public class PlayerMovement : MonoBehaviour
     //if movement isnt proper move few statements to update()
     void FixedUpdate()
     {
+        if (!photonView.IsMine) return;
+
         //movement along axes
         float xPos = Input.GetAxisRaw("Horizontal");
         float yPos = Input.GetAxisRaw("Vertical");
@@ -95,10 +117,10 @@ public class PlayerMovement : MonoBehaviour
         bool isJumping = jump&&isGrounded;
         bool isSprinting = sprint && yPos > 0 && !isJumping&&isGrounded;  //to avoid sprinting backwards
 
-        if(isJumping)
+        /*if(isJumping)
         {
             rig.AddForce(Vector3.up * jumpForce);
-        }
+        }*/
 
         
 

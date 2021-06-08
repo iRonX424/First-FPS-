@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class Weapon : MonoBehaviour
+public class Weapon : MonoBehaviourPunCallbacks
 {
     [SerializeField] Guns[] loadouts;
     [SerializeField] Transform weaponParent;
@@ -21,14 +22,19 @@ public class Weapon : MonoBehaviour
 
     void Update()
     {
+        if (!photonView.IsMine) return;
+
         if (Input.GetKeyDown(KeyCode.Alpha1))
-            Equip(0);
+        {
+            photonView.RPC("Equip",RpcTarget.All,0);
+        }
+
         if (currentWeapon != null)
         {
             Aim(Input.GetMouseButton(1));
 
-            if (Input.GetMouseButtonDown(0) && cooldown<=0)
-                Shoot();
+            if (Input.GetMouseButtonDown(0) && cooldown <= 0)
+                photonView.RPC("Shoot",RpcTarget.All);
 
             //weapon position elasticity
             currentWeapon.transform.localPosition = Vector3.Lerp(currentWeapon.transform.localPosition,
@@ -40,6 +46,7 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    [PunRPC]
     void Equip(int loadoutIndex)
     {
         if (currentWeapon != null)
@@ -52,6 +59,7 @@ public class Weapon : MonoBehaviour
                                                 weaponParent) as GameObject;
         weaponEquipped.transform.localPosition = Vector3.zero;
         weaponEquipped.transform.localEulerAngles = Vector3.zero;
+        weaponEquipped.GetComponent<WeaponSway>().enabled = photonView.IsMine;
 
         currentWeapon = weaponEquipped;
     }
@@ -72,6 +80,7 @@ public class Weapon : MonoBehaviour
         }
     }
 
+    [PunRPC]
     void Shoot()
     {
         Transform rayOrigin = transform.Find("Cameras/Player Camera");

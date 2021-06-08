@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class LookAround : MonoBehaviour
+public class LookAround : MonoBehaviourPunCallbacks
 {
     [SerializeField] Transform player;
     [SerializeField] Transform cam;
@@ -22,6 +23,8 @@ public class LookAround : MonoBehaviour
 
     void Update()
     {
+        if (!photonView.IsMine) return;
+
         SetY();
         SetX();
         UpdateCursorLock();
